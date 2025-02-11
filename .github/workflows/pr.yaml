@@ -1,0 +1,24 @@
+name: Pull request
+
+permissions:
+  contents: read
+  pull-requests: write
+  repository-projects: read
+
+on:
+  pull_request:
+    types: [opened, reopened, labeled, unlabeled]
+
+jobs:
+  release-labeller:
+    name: Verify required labels
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run Labeller Action
+        uses: ./labeller
+        with:
+          required_labels: |
+            feature,enhancement,fix,bugfix,bug,chore
+            major,minor,patch

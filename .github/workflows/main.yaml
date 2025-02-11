@@ -1,0 +1,32 @@
+name: Main
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  packages: write
+  pull-requests: write
+
+jobs:
+  release:
+    name: Release labeler
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Release Drafter
+        uses: release-drafter/release-drafter@v6
+        id: release-drafter
+        with:
+          publish: true
+          config-name: release-drafter.yaml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Tag with major version
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -fa "v${{ steps.release-drafter.outputs.major_version }}" -m "Release v${{ steps.release-drafter.outputs.major_version }}"
+          git push -f origin "v${{ steps.release-drafter.outputs.major_version }}"
