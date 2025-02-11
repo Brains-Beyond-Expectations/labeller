@@ -1,0 +1,53 @@
+name: "Labeller"
+description: "Check for required labels on pull requests and/or add labels"
+inputs:
+  add_labels:
+    description: "Comma separated list of labels to add to the pull request."
+    required: false
+  required_labels:
+    description:
+      "Comma separated list of labels that are required. Multiple lists can be
+      provided, separated by newlines. Example: required_labels: |
+      feature,enhancement,fix,bugfix,bug,chore major,minor,patch"
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Add labels
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        if [ -n "${{ inputs.add_labels }}" ]; then
+          pull_request_number=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+          IFS=',' read -ra labels <<< "${{ inputs.add_labels }}"
+          for label in "${labels[@]}"; do
+            gh pr edit $pull_request_number --add-label $label
+          done
+        fi
+    - name: Check for required labels
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.required_labels }}" ]; then
+          labels_missing=false        
+          while IFS= read -r category; do
+            if [ -n "$category" ]; then
+              IFS=',' read -ra labels <<< "$category"
+              category_satisfied=false
+              for label in "${labels[@]}"; do
+                if grep -q "\"name\": \"$label\"" "$GITHUB_EVENT_PATH"; then
+                  category_satisfied=true
+                  break
+                fi
+              done
+              if [ "$category_satisfied" = false ]; then
+                echo "::error::At least one of these labels is required: ${labels[*]}"
+                labels_missing=true
+              fi
+            fi
+          done <<< "${{ inputs.required_labels }}"
+          if [ "$labels_missing" = true ]; then
+            exit 1
+          fi
+        fi
