@@ -17,7 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Run Labeller Action
-        uses: ./labeller
+        uses: ./
         with:
           required_labels: |
             feature,enhancement,fix,bugfix,bug,chore
