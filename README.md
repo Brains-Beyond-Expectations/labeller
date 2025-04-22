@@ -1,7 +1,7 @@
 # Labeller
 
 A simple Github Action allowing you to enforce labels on pull requests or add
-labels to pull requests.
+labels to pull requests. Automatically create labels if they do not exist.
 
 ## Inputs
 

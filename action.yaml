@@ -23,6 +23,11 @@ runs:
           pull_request_number=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
           IFS=',' read -ra labels <<< "${{ inputs.add_labels }}"
           for label in "${labels[@]}"; do
+            label_exists=$(gh label list --json name --jq ".[] | select(.name == \"$label\")")
+            if [ -z "$label_exists" ]; then
+              gh label create "$label" -d "Label created by GitHub Action"
+            fi
+
             gh pr edit $pull_request_number --add-label $label
           done
         fi
