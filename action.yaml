@@ -47,7 +47,8 @@ runs:
                 fi
               done
               if [ "$category_satisfied" = false ]; then
-                echo "::error::At least one of these labels is required: ${labels[*]}"
+                printf -v joined_labels '%s, ' "${labels[@]}"
+                echo "::error::At least one of these labels is required: ${joined_labels%, }"
                 labels_missing=true
               fi
             fi
